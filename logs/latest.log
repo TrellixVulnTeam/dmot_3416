@@ -1,0 +1,8 @@
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Beginning to fetch commands from root directory 'D:\projects\dmot\commands'
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands'
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\debug'
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\debug\template.command.js'
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\general'
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\general\test.command.js'
+3/20/22, 4:54:43 PM  | COMMAND_FETCH             | Successfully fetched 2 command(s) from root directory 'D:\projects\dmot\commands'
+3/20/22, 4:54:44 PM  | ONLINE                    | Client Dmot#1807 is now online!

@@ -1,6 +1,5 @@
 {
     "commandsPath": "commands/",
-    "migrateVerification": "03132022a",
-    "sessionClearInterval": 86400000,
-    "sessionPath": "session.log"
+    "maintenance": false,
+    "sessionPath": "./logs/latest.log"
 }

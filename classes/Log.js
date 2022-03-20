@@ -3,251 +3,182 @@
 "use strict";
 
 // Imports
-const Events = require("events");
 const fs = require("fs");
 const path = require("path");
 
 /**
  * Logging system
  * @class
- * @extends {Events}
  */
-class Log extends Events {
-    static #formatter = new Intl.DateTimeFormat("en-US", { dateStyle: "short", timeStyle: "medium" });
-    #path = null;
-    #stream = null;
-
+class Log {
     /**
      * Creates a new log file
      * @constructor
-     * @param {string} file File path
+     * @param {string} [file] File path
+     * @param {object} [options] Options
+     * @param {boolean} [options.autoConfiguration] Automatically configures the log file
      */
-    constructor(file) {
-        super();
-        this.#path = path.join(process.cwd(), file);
-    };
+    constructor(file = "logs/latest.log", options) {
+        /**
+         * @property {string} file Log file
+         */
+        this.file = file;
 
-    /**
-     * Clears the log file
-     */
-    clear() {
-        if(!this.exist) this.create();
-        else if(!this.stream) fs.writeFileSync(this.#path, "");
-        else {
-            this.close();
+        /**
+         * @property {Intl.DateTimeFormat} formatter Date time formatter
+         */
+        this.formatter = new Intl.DateTimeFormat("en-US", { dateStyle: "short", timeStyle: "medium" });
+
+        /**
+         * @property {fs.WriteStream?} stream Log stream
+         */
+        this.stream = null;
+
+        let parsedOptions = Object.assign({
+            autoConfiguration: true
+        }, Object(options ?? {}));
+        if(parsedOptions.autoConfiguration) {
+            this.create();
             this.open();
         };
-        super.emit("clear");
     };
 
     /**
-     * Closes the file
-     * @returns {fs.WriteStream | null} File write stream
+     * Closes the log stream
+     * @returns {fs.WriteStream} Log stream
      */
     close() {
-        if(!this.#stream) return null;
-        this.#stream.destroy();
-        super.emit("close");
-        this.#stream = null;
+        if(this.stream) throw new Error("Log stream is already closed");
+        let stream = this.stream;
+        this.stream = null;
+        return stream;
     };
 
     /**
-     * Creates a log file if it doesn't exist
+     * Creates the log file if it does not already exist
+     * @param {object} [options] Options
+     * @param {boolean} [options.recursive] Create file recursively through a directory
+     * @returns {boolean} Indicates whether or not the file has been successfully created
      */
-    create() {
-        if(!this.exist) {
-            let directory = path.dirname(this.#path);
-            if(!fs.existsSync(directory)) fs.mkdirSync(directory);
-            fs.writeFileSync(this.#path, "");
-            super.emit("create");
+    create(options) {
+        let parsedOptions = Object.assign({
+            recursive: true
+        }, Object(options ?? {}));
+        if(!fs.existsSync(this.file)) {
+            if(parsedOptions.recursive) fs.mkdirSync(path.dirname(this.file));
+            fs.appendFileSync(this.file, "");
+            return true;
+        };
+        return false;
+    };
+
+    /**
+     * Deletes the log file
+     * @returns {boolean} Indicates whether or not the file has been successfully deleted
+     */
+    delete() {
+        if(fs.existsSync(this.file)) {
+            fs.unlinkSync(this.file);
+            return true;
+        };
+        return false;
+    };
+
+    /**
+     * Logs an entry to the log file
+     * @param {string} message Message
+     * @param {object} [options] Options
+     * @param {Date|number} [options.date] Entry date
+     * @param {number} [options.datePadding] Entry date padding
+     * @param {number|string|(number|string)[]} [options.dateStyles] Entry date styling
+     * @param {Intl.DateTimeFormat} [options.formatter] Entry date formatter
+     * @param {boolean} [options.silent] Disables printing message to console
+     * @param {number|string|(number|string)[]} [options.styles] Entry styling
+     * @param {string} [options.title] Entry title
+     * @param {number} [options.titlePadding] Entry title padding
+     * @param {number|string|(number|string)[]} [options.titleStyles] Entry title styling
+     */
+    entry(message, options) {
+        if(!this.stream) throw new Error("Log stream is not opened yet");
+        let parsedOptions = Object.assign({
+            date: Date.now(),
+            datePadding: 20,
+            dateStyles: 94,
+            formatter: null,
+            silent: false,
+            styles: [],
+            title: "ENTRY",
+            titlePadding: 25,
+            titleStyles: 93
+        }, Object(options ?? {}));
+        let date = (parsedOptions.formatter ?? this.formatter).format(parsedOptions.date ?? Date.now()).padEnd(parsedOptions.datePadding, " ");
+        let title = String(parsedOptions.title).padEnd(parsedOptions.titlePadding, " ");
+        this.stream.write(`${date} | ${title} | ${message}\n`);
+        if(!parsedOptions.silent) {
+            let [ dateStyles, titleStyles, styles ] = [ parsedOptions.dateStyles, parsedOptions.titleStyles, parsedOptions.styles ]
+                .map(v => Array.isArray(v) ? v.map(u => `\x1b[${u}m`).join("") : `\x1b[${v}m`);
+            process.stdout.write(`${dateStyles}${date} \x1b[90m| ${titleStyles}${title} \x1b[90m| ${styles}${message}\x1b[0m\n`);
         };
     };
 
     /**
-     * Reports an error to the log file
-     * @param {string} message Message 
-     * @param {boolean} print Whether or not the print the message into the console
-     */
-    error(message, print = true) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        let { raw, colored } = Log.format(message, "error", "91");
-        this.write(raw);
-        if(print) process.stdout.write(colored);
-        super.emit("logError", message, raw, colored);
-        super.emit("log", message, raw, colored, "ERROR");
-    };
-
-    /**
-     * Returns whether or not the log file exists in the file system
+     * Returns whether or not the log file exists
      * @readonly
-     * @returns {boolean} Whether or not the log file exists in the file system
+     * @returns {boolean} Whether or not the log file exists
      */
-    get exist() {
-        return fs.existsSync(this.#path);
+    get exists() {
+        return fs.existsSync(this.file);
     };
 
     /**
-     * Reports an failures to the log file
-     * @param {string} message Message 
-     * @param {boolean} print Whether or not the print the message into the console
+     * Opens the log stream
+     * @param {object} [options] Options
+     * @param {boolean} [options.autoCreate] Autocreates the log file if it does not already exist 
+     * @param {boolean} [options.overwrite] Overwrites the log stream if it is already opened
+     * @returns {fs.WriteStream} Log stream
      */
-    fail(message, print = true) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        let { raw, colored } = Log.format(message, "failure", "95");
-        this.write(raw);
-        if(print) process.stdout.write(colored);
-        super.emit("logFailure", message, raw, colored);
-        super.emit("log", message, raw, colored, "FAILURE");
-    };
-
-    /**
-     * Formats the message
-     * @static
-     * @param {string} message Message
-     * @param {string} type Type
-     * @param {number | string} color ANSI color code
-     * @returns {{
-     *     color: number | string,
-     *     colored: string,
-     *     message: string,
-     *     paddedNow: string,
-     *     paddedType: string,
-     *     raw: string,
-     *     type: string
-     * }}
-     */
-    static format(message, type, color) {
-        let paddedNow = Log.now().padEnd(20, " ");
-        let paddedType = String(type).toUpperCase().padEnd(15, " ");
-        return {
-            color, colored: `\x1b[34m${paddedNow}\x1b[90m |\x1b[93m ${paddedType}\x1b[90m |\x1b[${color}m ${message}\x1b[0m\n`,
-            message, paddedNow, paddedType, raw: `${paddedNow} | ${paddedType} | ${message}\n`, type
+    open(options) {
+        let parsedOptions = Object.assign({
+            autoCreate: true,
+            overwrite: false
+        }, Object(options ?? {}));
+        if(!fs.existsSync(this.file)) {
+            if(parsedOptions.autoCreate) this.create();
+            else throw new Error("Log file does not exit");
         };
+        if(!parsedOptions.overwrite && this.stream) throw new Error("Log stream is already opened. Use 'log.close()' or 'log.reopen()' instead");
+        this.stream = fs.createWriteStream(this.file);
+        return this.stream;
     };
 
     /**
-     * Returns the formatter of the logging system
+     * Returns whether or not the log stream is opened
      * @readonly
-     * @static
-     * @returns {Intl.DateTimeFormat} Date time formatter
+     * @returns {boolean} Whether or not the log stream is opened
      */
-    static get formatter() {
-        return this.#formatter;
+    get opened() {
+        return !!this.stream;
     };
 
     /**
-     * Sets the formatter of the logging system
-     * @static
-     * @param {Intl.DateTimeFormat} formatter Date time formatter
+     * Reopens the log stream
+     * @param {object} [options] Options
+     * @param {boolean} [options.autoCreate] Autocreates the log file if it does not already exist 
+     * @param {boolean} [options.overwrite] Overwrites the log stream if it is already opened
+     * @returns {fs.WriteStream} Log stream
      */
-    static set formatter(formatter) {
-        if(!(formatter instanceof Intl.DateTimeFormat)) throw new TypeError("Formatter must be an instance of 'Intl.DateTimeFormat'");
-        this.#formatter = formatter;
+    reopen(options) {
+        this.close();
+        return this.open(options);
     };
 
     /**
-     * Logs an information to the log file
-     * @param {string} message Message 
-     * @param {boolean} print Whether or not the print the message into the console
-     */
-    info(message, print = true) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        let { raw, colored } = Log.format(message, "info", "97");
-        this.write(raw);
-        if(print) process.stdout.write(colored);
-        super.emit("logInfo", message, raw, colored);
-        super.emit("log", message, raw, colored, "INFO");
-    };
-
-    /**
-     * Logs a message to the log file
-     * @param {string} message Message 
-     * @param {boolean} print Whether or not the print the message into the console
-     */
-    log(message, print = true) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        let { raw, colored } = Log.format(message, "log", "96");
-        this.write(raw);
-        if(print) process.stdout.write(colored);
-        super.emit("logLog", message, raw, colored);
-        super.emit("log", message, raw, colored, "LOG");
-    };
-
-    /**
-     * Returns the formatted current time
-     * @static
-     * @returns {string} Formatted current time
-     */
-    static now() {
-        return Log.#formatter.format(Date.now());
-    };
-
-    /**
-     * Opens the log file
-     * @returns {fs.WriteStream}
-     */
-    open() {
-        if(!this.exist) this.create();
-        if(this.#stream) return this.#stream;
-        this.#stream = fs.createWriteStream(this.#path);
-        super.emit("open");
-        return this.#stream;
-    };
-    
-    /**
-     * Returns the path of the log file
+     * Returns the resolved path
      * @readonly
-     * @returns {string}
+     * @returns {string} Resolved path
      */
-    get path() {
-        return this.#path;
-    };
-
-    /**
-     * Returns the write stream of the log file
-     * @readonly
-     * @returns {fs.WriteStream | null}
-     */
-    get stream() {
-        return this.#stream;
-    };
-
-    /**
-     * Logs a successful message to the log file
-     * @param {string} message Message 
-     * @param {boolean} print Whether or not the print the message into the console
-     */
-    success(message, print = true) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        let { raw, colored } = Log.format(message, "success", "92");
-        this.write(raw);
-        if(print) process.stdout.write(colored);
-        super.emit("logSuccess", message, raw, colored);
-        super.emit("log", message, raw, colored, "SUCCESS");
-    };
-
-    /**
-     * Reports a warning to the log file
-     * @param {string} message Message 
-     * @param {boolean} print Whether or not the print the message into the console
-     */
-    warn(message, print = true) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        let { raw, colored } = Log.format(message, "warning", "93");
-        this.write(raw);
-        if(print) process.stdout.write(colored);
-        super.emit("logWarning", message, raw, colored);
-        super.emit("log", message, raw, colored, "WARNING");
-    };
-
-    /**
-     * Writes to the log file
-     * @param {string} message Message
-     */
-    write(message) {
-        if(!this.#stream) throw new Error("The log file hasn't been opened yet");
-        this.#stream.write(message);
-        super.emit("write", message);
+    get resolvedPath() {
+        return path.resolve(this.file);
     };
 };
 
