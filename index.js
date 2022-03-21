@@ -25,6 +25,7 @@ let database = new Enmap({ name: "database" });
 
 // Events
 client.on("ready", () => {
+    console.log(new Date(client.user.createdTimestamp).toLocaleDateString())
     sessionLog.entry(`Client ${client.user.tag} is now online!`, {
         styles: 92,
         title: "ONLINE"
