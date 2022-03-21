@@ -1,8 +1,10 @@
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Beginning to fetch commands from root directory 'D:\projects\dmot\commands'
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands'
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\debug'
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\debug\template.command.js'
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\general'
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\general\test.command.js'
-3/20/22, 5:26:33 PM  | COMMAND_FETCH             | Successfully fetched 2 command(s) from root directory 'D:\projects\dmot\commands'
-3/20/22, 5:26:35 PM  | ONLINE                    | Client Dmot#1807 is now online!
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Beginning to fetch commands from root directory 'D:\projects\dmot\commands'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\debug'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\debug\template.command.js'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\fun'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\fun\test.command.js'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching commands from directory 'D:\projects\dmot\commands\general'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Fetching command from file 'D:\projects\dmot\commands\general\test.command.js'
+3/20/22, 10:15:05 PM | COMMAND_FETCH             | Successfully fetched 3 command(s) from root directory 'D:\projects\dmot\commands'
+3/20/22, 10:15:06 PM | ONLINE                    | Client Dmot#1807 is now online!

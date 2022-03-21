@@ -25,7 +25,6 @@ let database = new Enmap({ name: "database" });
 
 // Events
 client.on("ready", () => {
-    console.log(new Date(client.user.createdTimestamp).toLocaleDateString())
     sessionLog.entry(`Client ${client.user.tag} is now online!`, {
         styles: 92,
         title: "ONLINE"
@@ -139,7 +138,15 @@ client.on("messageCreate", message => {
         try {
             if(!(String(name).toLowerCase() in commands)) return void message.reply("Unknown command. Use `help` for a list of commands");
             let command = commands[name];
-            if(commands["permission"] !== 0) return void message.reply("This command can only be used in a guild");
+            if(command["permission"] !== 0) {
+                // if(command["permission"] === 5) {
+                //     // @ts-ignore
+                //     if(!client.application.owner.members.some(v => v.id === message.author.id))
+                //         return void message.reply("This command can only be used by the developer");
+                // }
+                // else
+                return void message.reply("This command can only be used in a guild");
+            };
             command.run(client, message, args, {
                 commands, config, database, sessionLog
             });
