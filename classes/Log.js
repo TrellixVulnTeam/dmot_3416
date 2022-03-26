@@ -65,7 +65,7 @@ class Log {
             recursive: true
         }, Object(options ?? {}));
         if(!fs.existsSync(this.file)) {
-            if(parsedOptions.recursive) fs.mkdirSync(path.dirname(this.file));
+            if(parsedOptions.recursive && !fs.existsSync(path.dirname(this.file))) fs.mkdirSync(path.dirname(this.file));
             fs.appendFileSync(this.file, "");
             return true;
         };
