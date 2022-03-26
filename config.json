@@ -1,5 +1,8 @@
 {
     "commandsPath": "commands/",
+    "defaultPrefixes": [ "dmot: " ],
+    "handlersPath": "handlers/",
     "maintenance": false,
-    "sessionPath": "./logs/latest.log"
+    "sessionPath": "logs/latest.log",
+    "version": "v2.0.0a0"
 }

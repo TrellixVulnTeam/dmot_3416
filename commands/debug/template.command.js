@@ -3,23 +3,22 @@
 "use strict";
 
 // Imports
-const Command = require("../../classes/Command.js");
+const SimpleCommand = require("../../classes/SimpleCommand.js");
 
 /**
  * Command class
  * @class
- * @extends {Command}
+ * @extends {SimpleCommand}
  */
-class Template extends Command {
+class Template extends SimpleCommand {
     /**
      * Creates a new command
      */
     constructor() {
-        super({
+        super("template", {
             aliases: [],
             category: "debug",
             description: "This is a template command",
-            name: "template",
             permission: 0
         });
     };
